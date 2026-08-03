@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>我的待办清单</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f4f6f8;
+    }
+    main {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+    }
+    h1 { text-align: center; }
+    form { display: flex; gap: 8px; }
+    input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    li.done span {
+      text-decoration: line-through;
+      color: #888;
+    }
+    li span { flex: 1; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>我的待办清单</h1>
+
+    <form id="todoForm">
+      <input id="todoInput" placeholder="输入一项任务" required>
+      <button type="submit">添加</button>
+    </form>
+
+    <ul id="todoList"></ul>
+  </main>
+
+  <script>
+    const form = document.querySelector("#todoForm");
+    const input = document.querySelector("#todoInput");
+    const list = document.querySelector("#todoList");
+
+    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
+
+    function save() {
+      localStorage.setItem("todos", JSON.stringify(todos));
+    }
+
+    function render() {
+      list.innerHTML = "";
+
+      todos.forEach((todo, index) => {
+        const item = document.createElement("li");
+        if (todo.done) item.classList.add("done");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = todo.done;
+        checkbox.addEventListener("change", () => {
+          todo.done = checkbox.checked;
+          save();
+          render();
+        });
+
+        const text = document.createElement("span");
+        text.textContent = todo.text;
+
+        const remove = document.createElement("button");
+        remove.textContent = "删除";
+        remove.addEventListener("click", () => {
+          todos.splice(index, 1);
+          save();
+          render();
+        });
+
+        item.append(checkbox, text, remove);
+        list.appendChild(item);
+      });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      todos.push({ text: input.value.trim(), done: false });
+      input.value = "";
+      save();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
