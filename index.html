@@ -7,38 +7,74 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
+      max-width: 650px;
       margin: 40px auto;
       padding: 0 20px;
       background: #f4f6f8;
     }
+
     main {
       background: white;
       padding: 24px;
       border-radius: 12px;
     }
-    h1 { text-align: center; }
-    form { display: flex; gap: 8px; }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    input, select, button {
+      padding: 10px;
+      font-size: 15px;
+    }
+
     input {
       flex: 1;
-      padding: 10px;
-      font-size: 16px;
+      min-width: 180px;
     }
+
     button {
-      padding: 10px 16px;
       cursor: pointer;
     }
+
+    .filter {
+      margin: 20px 0;
+    }
+
     li {
       display: flex;
       align-items: center;
       gap: 8px;
       margin: 12px 0;
     }
-    li.done span {
+
+    li.done span.task-text {
       text-decoration: line-through;
       color: #888;
     }
-    li span { flex: 1; }
+
+    .task-text {
+      flex: 1;
+    }
+
+    .category {
+      background: #e8f0fe;
+      color: #2455a4;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    #empty {
+      color: #888;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -47,18 +83,49 @@
 
     <form id="todoForm">
       <input id="todoInput" placeholder="输入一项任务" required>
+
+      <select id="categoryInput">
+        <option value="工作">工作</option>
+        <option value="学习">学习</option>
+        <option value="生活">生活</option>
+        <option value="其他">其他</option>
+      </select>
+
       <button type="submit">添加</button>
     </form>
 
+    <div class="filter">
+      <label>
+        筛选分类：
+        <select id="filterCategory">
+          <option value="全部">全部</option>
+          <option value="工作">工作</option>
+          <option value="学习">学习</option>
+          <option value="生活">生活</option>
+          <option value="其他">其他</option>
+        </select>
+      </label>
+    </div>
+
     <ul id="todoList"></ul>
+    <p id="empty">还没有任务</p>
   </main>
 
   <script>
     const form = document.querySelector("#todoForm");
     const input = document.querySelector("#todoInput");
+    const categoryInput = document.querySelector("#categoryInput");
+    const filterCategory = document.querySelector("#filterCategory");
     const list = document.querySelector("#todoList");
+    const empty = document.querySelector("#empty");
 
-    let todos = JSON.parse(localStorage.getItem("todos") || "[]");
+    let todos = JSON.parse(localStorage.getItem("todos") || "[]").map(todo => ({
+      text: todo.text || "",
+      done: Boolean(todo.done),
+      category: todo.category || "其他"
+    }));
+
+    let currentFilter = "全部";
 
     function save() {
       localStorage.setItem("todos", JSON.stringify(todos));
@@ -67,13 +134,25 @@
     function render() {
       list.innerHTML = "";
 
-      todos.forEach((todo, index) => {
+      const visibleTodos = todos
+        .map((todo, index) => ({ todo, index }))
+        .filter(({ todo }) =>
+          currentFilter === "全部" || todo.category === currentFilter
+        );
+
+      empty.hidden = visibleTodos.length > 0;
+
+      visibleTodos.forEach(({ todo, index }) => {
         const item = document.createElement("li");
-        if (todo.done) item.classList.add("done");
+
+        if (todo.done) {
+          item.classList.add("done");
+        }
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = todo.done;
+
         checkbox.addEventListener("change", () => {
           todo.done = checkbox.checked;
           save();
@@ -81,30 +160,24 @@
         });
 
         const text = document.createElement("span");
+        text.className = "task-text";
         text.textContent = todo.text;
 
+        const category = document.createElement("span");
+        category.className = "category";
+        category.textContent = todo.category;
+
         const remove = document.createElement("button");
+        remove.type = "button";
         remove.textContent = "删除";
+
         remove.addEventListener("click", () => {
           todos.splice(index, 1);
           save();
           render();
         });
 
-        item.append(checkbox, text, remove);
+        item.append(checkbox, text, category, remove);
         list.appendChild(item);
       });
-    }
-
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      todos.push({ text: input.value.trim(), done: false });
-      input.value = "";
-      save();
-      render();
-    });
-
-    render();
-  </script>
-</body>
-</html>
+ 
