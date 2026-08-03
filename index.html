@@ -185,23 +185,29 @@
     form.addEventListener("submit", event => {
       event.preventDefault();
 
-      todos.push({
-        text: input.value.trim(),
-        done: false,
-        category: categoryInput.value
-      });
+      form.addEventListener("submit", event => {
+  event.preventDefault();
 
-      input.value = "";
-      save();
-      render();
-    });
+  const text = input.value.trim();
 
-    filterCategory.addEventListener("change", () => {
-      currentFilter = filterCategory.value;
-      render();
-    });
+  if (!text) {
+    alert("请输入任务内容");
+    return;
+  }
 
-    render();
+  todos.push({
+    text: text,
+    done: false,
+    category: categoryInput.value
+  });
+
+  input.value = "";
+  currentFilter = "全部";
+  filterCategory.value = "全部";
+
+  save();
+  render();
+});
   </script>
 </body>
 </html>
