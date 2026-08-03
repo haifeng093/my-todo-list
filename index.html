@@ -177,9 +177,31 @@
           render();
         });
 
-        item.append(checkbox, text, category, remove);
+                item.append(checkbox, text, category, remove);
         list.appendChild(item);
       });
- </script>
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      todos.push({
+        text: input.value.trim(),
+        done: false,
+        category: categoryInput.value
+      });
+
+      input.value = "";
+      save();
+      render();
+    });
+
+    filterCategory.addEventListener("change", () => {
+      currentFilter = filterCategory.value;
+      render();
+    });
+
+    render();
+  </script>
 </body>
 </html>
